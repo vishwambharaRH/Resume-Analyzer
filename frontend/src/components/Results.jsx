@@ -1,81 +1,48 @@
-import React from 'react';
-import { Award, TrendingUp, CheckCircle, AlertCircle, Download, XCircle } from 'lucide-react';
-
+import React from "react";
+import { Award, TrendingUp, CheckCircle, Download } from "lucide-react";
+// eslint-disable-next-line no-unused-vars
 const Results = ({ onNavigate, jobData }) => {
-  // Mock results with validation data
+  // Mock results (replace with real data from jobData later)
   const mockResults = {
-    overallScore: 75,  // Completeness score from backend
-    validation: {
-      has_all_required: false,
-      missing_sections: ['skills'],
-      present_sections: ['education', 'experience', 'projects'],
-      completeness_score: 75.0
-    },
+    overallScore: 87,
     sections: {
-      education: { 
-        score: 88, 
-        status: 'complete', 
-        items: ['BS Computer Science, MIT, 2020'] 
+      skills: {
+        score: 92,
+        status: "excellent",
+        items: ["Python", "React", "FastAPI", "Machine Learning"],
       },
-      skills: { 
-        score: 0, 
-        status: 'missing', 
-        items: [] 
+      experience: {
+        score: 85,
+        status: "good",
+        items: ["3+ years as Software Engineer", "Led team of 5 developers"],
       },
-      experience: { 
-        score: 85, 
-        status: 'complete', 
-        items: ['Software Engineer, Google, 2020-Present'] 
+      education: {
+        score: 88,
+        status: "excellent",
+        items: ["BS Computer Science", "Stanford University"],
       },
-      projects: { 
-        score: 78, 
-        status: 'complete', 
-        items: ['AI Chatbot using NLP'] 
-      }
+      projects: {
+        score: 78,
+        status: "good",
+        items: ["AI Chatbot", "E-commerce Platform"],
+      },
     },
     strengths: [
-      'Resume partially complete',
-      '3 out of 4 required sections present',
-      'Clear structure and organization'
+      "Strong technical skills in modern frameworks",
+      "Clear career progression",
+      "Relevant industry experience",
     ],
     improvements: [
-      'Add skills section - CRITICAL',
-      'Add quantifiable achievements',
-      'Include specific technologies used'
-    ]
-  };
-
-  const getSectionIcon = (status) => {
-    switch(status) {
-      case 'complete':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'missing':
-        return <XCircle className="w-5 h-5 text-red-500" />;
-      case 'incomplete':
-        return <AlertCircle className="w-5 h-5 text-yellow-500" />;
-      default:
-        return <CheckCircle className="w-5 h-5 text-gray-400" />;
-    }
-  };
-
-  const getSectionColor = (status) => {
-    switch(status) {
-      case 'complete':
-        return 'border-green-200 bg-green-50';
-      case 'missing':
-        return 'border-red-200 bg-red-50';
-      case 'incomplete':
-        return 'border-yellow-200 bg-yellow-50';
-      default:
-        return 'border-gray-200 bg-white';
-    }
+      "Add quantifiable achievements",
+      "Include more project details",
+      "Add certifications section",
+    ],
   };
 
   const getScoreColor = (score) => {
-    if (score >= 85) return 'text-green-500';
-    if (score >= 70) return 'text-blue-500';
-    if (score >= 50) return 'text-yellow-500';
-    return 'text-red-500';
+    if (score >= 85) return "text-green-500";
+    if (score >= 70) return "text-blue-500";
+    return "text-orange-500";
   };
 
   return (
@@ -84,7 +51,7 @@ const Results = ({ onNavigate, jobData }) => {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => onNavigate('upload')}
+            onClick={() => onNavigate("upload")}
             className="text-purple-600 hover:text-purple-700 mb-4 inline-flex items-center font-semibold"
           >
             ← Analyze Another Resume
@@ -94,36 +61,18 @@ const Results = ({ onNavigate, jobData }) => {
           </h2>
         </div>
 
-        {/* Overall Score Card with Validation Status */}
+        {/* Overall Score Card */}
         <div className="bg-white rounded-3xl shadow-2xl p-8 mb-8">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-lg mb-2">Resume Completeness Score</p>
+              <p className="text-gray-600 text-lg mb-2">Overall Resume Score</p>
               <div className="flex items-baseline">
-                <span className={`text-6xl font-bold ${getScoreColor(mockResults.overallScore)}`}>
+                <span className="text-6xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                   {mockResults.overallScore}
                 </span>
                 <span className="text-3xl text-gray-400 ml-2">/100</span>
               </div>
-              
-              {/* Validation Status */}
-              {!mockResults.validation.has_all_required && (
-                <div className="mt-4 flex items-center text-red-600">
-                  <AlertCircle className="w-5 h-5 mr-2" />
-                  <span className="font-semibold">
-                    {mockResults.validation.missing_sections.length} required section(s) missing
-                  </span>
-                </div>
-              )}
-              {mockResults.validation.has_all_required && (
-                <div className="mt-4 flex items-center text-green-600">
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  <span className="font-semibold">All required sections present!</span>
-                </div>
-              )}
             </div>
-            
-            {/* Circular Progress */}
             <div className="relative w-32 h-32">
               <svg className="transform -rotate-90 w-32 h-32">
                 <circle
@@ -146,7 +95,13 @@ const Results = ({ onNavigate, jobData }) => {
                   strokeLinecap="round"
                 />
                 <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient
+                    id="gradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%"
+                  >
                     <stop offset="0%" stopColor="#9333ea" />
                     <stop offset="100%" stopColor="#2563eb" />
                   </linearGradient>
@@ -154,66 +109,29 @@ const Results = ({ onNavigate, jobData }) => {
               </svg>
             </div>
           </div>
-
-          {/* Missing Sections Alert */}
-          {mockResults.validation.missing_sections.length > 0 && (
-            <div className="mt-6 p-4 bg-red-50 border-2 border-red-200 rounded-2xl">
-              <h4 className="font-bold text-red-800 mb-2 flex items-center">
-                <XCircle className="w-5 h-5 mr-2" />
-                Missing Sections (Critical)
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {mockResults.validation.missing_sections.map((section, idx) => (
-                  <span 
-                    key={idx}
-                    className="px-3 py-1 bg-red-200 text-red-800 rounded-full text-sm font-semibold capitalize"
-                  >
-                    {section}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Section Scores with Status Indicators */}
+        {/* Section Scores */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {Object.entries(mockResults.sections).map(([section, data]) => (
-            <div 
-              key={section} 
-              className={`rounded-2xl shadow-lg p-6 border-2 ${getSectionColor(data.status)}`}
-            >
+            <div key={section} className="bg-white rounded-2xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  {getSectionIcon(data.status)}
-                  <h3 className="text-xl font-bold text-gray-800 capitalize ml-2">
-                    {section}
-                  </h3>
-                </div>
-                <div className={`text-3xl font-bold ${getScoreColor(data.score)}`}>
+                <h3 className="text-xl font-bold text-gray-800 capitalize">
+                  {section}
+                </h3>
+                <div
+                  className={`text-3xl font-bold ${getScoreColor(data.score)}`}
+                >
                   {data.score}
                 </div>
               </div>
-              
-              {data.status === 'missing' && (
-                <div className="bg-red-100 border border-red-300 rounded-lg p-3 mb-3">
-                  <p className="text-red-800 font-semibold text-sm">
-                    ⚠️ This section is required but not found in your resume
-                  </p>
-                </div>
-              )}
-              
               <div className="space-y-2">
-                {data.items.length > 0 ? (
-                  data.items.map((item, idx) => (
-                    <div key={idx} className="flex items-start">
-                      <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                      <span className="text-gray-600 text-sm">{item}</span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500 italic text-sm">No content found</p>
-                )}
+                {data.items.map((item, idx) => (
+                  <div key={idx} className="flex items-start">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-1 flex-shrink-0" />
+                    <span className="text-gray-600 text-sm">{item}</span>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
