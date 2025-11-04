@@ -1,9 +1,9 @@
 /**
  * API service for backend communication
  */
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 class APIService {
   constructor() {
@@ -18,16 +18,16 @@ class APIService {
    */
   async uploadResume(file, onProgress) {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     try {
-      const response = await this.client.post('/api/v1/parse', formData, {
+      const response = await this.client.post("/api/v1/parse", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
+            (progressEvent.loaded * 100) / progressEvent.total,
           );
           if (onProgress) {
             onProgress(percentCompleted);
@@ -57,7 +57,7 @@ class APIService {
    */
   async checkHealth() {
     try {
-      const response = await this.client.get('/api/v1/health');
+      const response = await this.client.get("/api/v1/health");
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -71,19 +71,20 @@ class APIService {
     if (error.response) {
       return {
         status: error.response.status,
-        message: error.response.data.detail || 'Server error occurred',
+        message: error.response.data.detail || "Server error occurred",
         data: error.response.data,
       };
     } else if (error.request) {
       return {
         status: 0,
-        message: 'Cannot connect to server. Please check if backend is running.',
+        message:
+          "Cannot connect to server. Please check if backend is running.",
         data: null,
       };
     } else {
       return {
         status: -1,
-        message: error.message || 'An unexpected error occurred',
+        message: error.message || "An unexpected error occurred",
         data: null,
       };
     }
