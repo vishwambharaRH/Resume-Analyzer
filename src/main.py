@@ -29,15 +29,26 @@ app.include_router(results_router, prefix="/api/v1", tags=["Results"])
 
 @app.get("/")
 def root():
-    return {"message": "Resume Analyzer API",
-            "version": "1.0.0", "status": "running"}
+    """
+    Root endpoint for the API
+    Returns a status message with version info.
+    """
+    return {"message": "Resume Analyzer API", "version": "1.0.0", "status": "running"}
 
 
 @app.get("/api/v1/health")
 def health():
+    """
+    Health check endpoint
+    Returns API health status.
+    """
     return {"status": "healthy"}
 
 
 @app.on_event("startup")
 async def startup_event():
+    """
+    Startup event handler
+    Logs module load confirmation during server startup.
+    """
     print("Section detector module loaded successfully")

@@ -155,20 +155,13 @@ class SectionDetector:
 
         # Remove section header from word count
         for pattern in SECTION_PATTERNS[section_type]:
-            section_text = re.sub(
-                pattern,
-                "",
-                section_text,
-                flags=re.IGNORECASE
-            )
+            section_text = re.sub(pattern, "", section_text, flags=re.IGNORECASE)
 
         # Count meaningful words (exclude common filler)
         words = [
             word
             for word in section_text.split()
-            if len(word) > 2 and word.lower() not in {
-                "the", "and", "for", "with"
-            }
+            if len(word) > 2 and word.lower() not in {"the", "and", "for", "with"}
         ]
 
         return len(words) >= min_words
@@ -204,7 +197,5 @@ class SectionDetector:
             "missing_sections": missing,
             "incomplete_sections": [],  # Populated by parsing engine
             "present_sections": present,
-            "completeness_score": round(
-                completeness_score, 2
-            ),
+            "completeness_score": round(completeness_score, 2),
         }
