@@ -22,13 +22,12 @@ async def save_file(file: UploadFile) -> dict:
     Returns:
         dict: File metadata including job id, filenames, size and timestamps
     """
-
     job_id = str(uuid.uuid4())
     file_ext = Path(file.filename).suffix
     unique_filename = f"{job_id}{file_ext}"
     file_path = UPLOAD_DIR / unique_filename
 
-    content = await file.read()
+    content = await file.read()  # async read
 
     # Write file to disk
     with file_path.open("wb") as file_handle:
@@ -55,7 +54,6 @@ def delete_file(file_path: str) -> bool:
     Returns:
         bool: True if deleted successfully, False otherwise
     """
-
     try:
         path = Path(file_path)
         if path.exists():
@@ -63,5 +61,4 @@ def delete_file(file_path: str) -> bool:
             return True
         return False
     except OSError:
-        # Return False but avoid swallowing all exceptions
         return False
