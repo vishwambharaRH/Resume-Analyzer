@@ -45,12 +45,17 @@ def validate_file_size(file_size: int) -> Tuple[bool, str]:
 
     if file_size > MAX_FILE_SIZE:
         size_mb = file_size / (1024 * 1024)
-        return False, f"File too large: {size_mb:.2f} MB. Maximum: 10 MB"
+        return (
+            False,
+            f"File too large: {size_mb:.2f} MB. Maximum: 10 MB"
+        )
 
     return True, ""
 
 
-def validate_file_content(file_content: bytes, filename: str) -> Tuple[bool, str]:
+def validate_file_content(
+    file_content: bytes, filename: str
+) -> Tuple[bool, str]:
     """
     Validate actual file content using signature/magic bytes.
 

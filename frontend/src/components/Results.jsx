@@ -1,7 +1,7 @@
-import React from "react";
 import { Award, TrendingUp, CheckCircle, Download } from "lucide-react";
-// eslint-disable-next-line no-unused-vars
-const Results = ({ onNavigate, jobData }) => {
+import PropTypes from 'prop-types';
+
+const Results = ({ onNavigate}) => {
   // Mock results (replace with real data from jobData later)
   const mockResults = {
     overallScore: 87,
@@ -180,6 +180,11 @@ const Results = ({ onNavigate, jobData }) => {
       </div>
     </div>
   );
+};
+
+Results.propTypes = {
+  onNavigate: PropTypes.func.isRequired,
+  jobData: PropTypes.object,
 };
 
 export default Results;

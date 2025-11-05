@@ -1,1 +1,2 @@
-module.exports = {};
+// __mocks__/styleMock.js
+export default {};
