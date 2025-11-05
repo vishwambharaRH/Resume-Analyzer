@@ -1,5 +1,5 @@
-import React from "react";
-import { Upload, Target, Award, TrendingUp, Zap } from "lucide-react";
+import {Target, Award, TrendingUp, Zap } from "lucide-react";
+import PropTypes from 'prop-types';
 
 const Home = ({ onNavigate }) => {
   return (
@@ -67,6 +67,10 @@ const Home = ({ onNavigate }) => {
       </div>
     </div>
   );
+};
+
+Home.propTypes = {
+  onNavigate: PropTypes.func.isRequired,
 };
 
 export default Home;

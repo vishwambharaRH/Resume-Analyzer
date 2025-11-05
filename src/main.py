@@ -5,6 +5,7 @@ Main FastAPI application
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.upload.routes import router as upload_router
+from src.api.results import router as results_router
 
 app = FastAPI(
     title="Resume Analyzer API",
@@ -23,13 +24,20 @@ app.add_middleware(
 
 # Register routers
 app.include_router(upload_router, prefix="/api/v1/parse", tags=["Upload"])
+app.include_router(results_router, prefix="/api/v1", tags=["Results"])
 
 
 @app.get("/")
 def root():
-    return {"message": "Resume Analyzer API", "version": "1.0.0", "status": "running"}
+    return {"message": "Resume Analyzer API",
+            "version": "1.0.0", "status": "running"}
 
 
 @app.get("/api/v1/health")
 def health():
     return {"status": "healthy"}
+
+
+@app.on_event("startup")
+async def startup_event():
+    print("Section detector module loaded successfully")

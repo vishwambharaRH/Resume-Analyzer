@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { Upload, CheckCircle, AlertCircle, FileText } from "lucide-react";
+import { useState } from "react";
+import { Upload, CheckCircle, AlertCircle} from "lucide-react";
 import { useDropzone } from "react-dropzone";
+import PropTypes from 'prop-types';
 import apiService from "../services/api";
 
 const UploadForm = ({ onNavigate, onUploadSuccess }) => {
@@ -242,6 +243,11 @@ const UploadForm = ({ onNavigate, onUploadSuccess }) => {
       </div>
     </div>
   );
+};
+
+UploadForm.propTypes = {
+  onNavigate: PropTypes.func.isRequired,
+  onUploadSuccess: PropTypes.func.isRequired,
 };
 
 export default UploadForm;
