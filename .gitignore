@@ -1,0 +1,28 @@
+<<<<<<< HEAD
+.sevenv
+.sevenv/*
+.python-version
+=======
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Testing
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Uploaded files
+uploads/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Node/React (if added later)
+node_modules/
+dist/
+build/
+>>>>>>> origin/develop
