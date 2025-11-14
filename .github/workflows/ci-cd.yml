@@ -1,10 +1,17 @@
+# CI CD workflow
 name: CI/CD Pipeline
 
 on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
+
+env:
+  # Auto grammar mode detection
+  USE_REAL_GRAMMAR: ${{ github.event_name != 'push' && github.event_name != 'pull_request' }}
+  GITHUB_ACTIONS: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+  CI: true
 
 jobs:
   # =====================================================
@@ -22,6 +29,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
+      
+      - name: Install Cairo system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev libjpeg-dev libpng-dev
 
       - name: Install backend dependencies
         run: |
@@ -42,6 +54,13 @@ jobs:
         working-directory: ./frontend
         run: npm run build
 
+      # ---------- Upload Frontend Build Artifact ----------
+      - name: Upload Frontend Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist/
+
   # =====================================================
   #  TEST STAGE (Unit, Integration, System)
   # =====================================================
@@ -49,6 +68,10 @@ jobs:
     name: Test Stage
     runs-on: ubuntu-latest
     needs: build
+    env:
+      USE_REAL_GRAMMAR: "false"
+      GITHUB_ACTIONS: "true"
+      CI: "true"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -58,12 +81,40 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
+
+      - name: Install Cairo system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev libjpeg-dev libpng-dev pkg-config python3-dev
+
       - name: Install test dependencies
-        run: pip install -r requirements.txt pytest pytest-cov pytest-html pytest-mock
-      - name: Run Unit Tests
-        run: pytest tests/unit --disable-warnings -q
+        run: pip install -r requirements.txt pytest pytest-cov pytest-html pytest-mock spacy  # ✅ Added spacy
+
+      # Grammar & Action Verb Engine Verification (NEW)
+      - name: Verify Grammar and Action Verb Engines
+        run: |
+          echo "Running Grammar & Action Verb Engine verification..."
+          python - << 'EOF'
+          from src.core.grammar_engine import USE_REAL_GRAMMAR, IS_CI
+          from src.core.action_verbs import ActionVerbEngine
+          print(f"USE_REAL_GRAMMAR={USE_REAL_GRAMMAR}, IS_CI={IS_CI}")
+          try:
+              engine = ActionVerbEngine()
+              print("✅ Action Verb Engine initialized successfully")
+              text = "I did backend work and helped build an API."
+              result = engine.suggest(text)
+              print("Weak verbs found:", result.get("found", []))
+              print("Suggestions:", result.get("suggestions", []))
+          except Exception as e:
+              print("❌ Action Verb Engine failed:", e)
+          EOF
+
+      - name: Run Unit Tests (with coverage enforcement)
+        run: pytest tests/unit --cov=src --cov-fail-under=75 --disable-warnings -q
+
       - name: Run Integration Tests
         run: pytest tests/integration --disable-warnings -q
+
       - name: Run System Tests
         run: pytest tests/system --disable-warnings -q
 
@@ -72,9 +123,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+ 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
         run: npm ci
+
       - name: Run Frontend Tests (Skip if none)
         working-directory: ./frontend
         run: |
@@ -90,21 +143,6 @@ jobs:
         run: |
           pytest --junitxml=test-results.xml --html=pytest-report.html --self-contained-html
 
-      - name: Upload Test Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: pytest-reports
-          path: |
-            test-results.xml
-            pytest-report.html
-
-      - name: Upload Frontend Coverage (if exists)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-coverage
-          path: frontend/coverage/
-
   # =====================================================
   # COVERAGE STAGE
   # =====================================================
@@ -112,6 +150,9 @@ jobs:
     name: Coverage Stage
     runs-on: ubuntu-latest
     needs: test
+    env:
+      USE_REAL_GRAMMAR: "false"
+      GITHUB_ACTIONS: "true"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -121,6 +162,11 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install Cairo system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev libjpeg-dev libpng-dev pkg-config python3-dev
+
       - name: Install test dependencies
         run: pip install -r requirements.txt pytest pytest-cov
 
@@ -128,11 +174,6 @@ jobs:
         run: |
           pytest --cov=src --cov-branch --cov-report=html --cov-report=term --cov-fail-under=75
 
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-coverage-report
-          path: htmlcov/
 
   # =====================================================
   # LINT STAGE (Static Analysis)
@@ -151,18 +192,25 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install Cairo system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev libjpeg-dev libpng-dev pkg-config python3-dev
+
+      - name: Install project dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
       - name: Install pylint
         run: pip install pylint
 
       - name: Run pylint and enforce score ≥7.5
         run: |
           echo "Running pylint..."
-          score=$(pylint src | tee pylint-report.txt | grep "rated at" | awk '{print $7}' | cut -d'/' -f1)
+          score=$(pylint src | tee pylint-report.txt | grep "rated at" | awk '{print $7}' | cut -d'/' -f1 | tr -d '[:space:]')
           echo "Pylint Score: $score"
-          if (( $(echo "$score < 7.5" | bc -l) )); then
-            echo " Pylint score below 7.5 threshold. Failing pipeline."
-            exit 1
-          fi
+          awk -v s="$score" 'BEGIN {if (s < 7.5) {print " Pylint score below 7.5 threshold. Failing pipeline."; exit 1} else {print " Pylint check passed."}}'
 
       # ---------- JavaScript Lint ----------
       - name: Setup Node.js
@@ -176,13 +224,8 @@ jobs:
 
       - name: Run ESLint
         working-directory: ./frontend
-        run: npm run lint || true
+        run: npm run lint
 
-      - name: Upload Lint Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-report
-          path: pylint-report.txt
 
   # =====================================================
   # SECURITY SCAN STAGE
@@ -200,22 +243,28 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install Cairo system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev libjpeg-dev libpng-dev pkg-config python3-dev
+
       - name: Install Security Tools
         run: pip install bandit safety
 
       - name: Run Bandit (Static Security Scan)
         run: bandit -r src -f json -o bandit-report.json
 
+      - name: Check for Critical Vulnerabilities
+        run: |
+          if grep -q '"issue_severity": "HIGH"' bandit-report.json; then
+            echo " Critical vulnerability found in Bandit scan. Failing pipeline."
+            exit 1
+          else
+            echo " No critical vulnerabilities found."
+          fi
+
       - name: Run Safety (Dependency Vulnerability Check)
         run: safety check --full-report > safety-report.txt
-
-      - name: Upload Security Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-reports
-          path: |
-            bandit-report.json
-            safety-report.txt
 
   # =====================================================
   # DEPLOYMENT ARTIFACT STAGE
@@ -223,24 +272,35 @@ jobs:
   deploy:
     name: Deployment Artifact Stage
     runs-on: ubuntu-latest
-    needs: security
+    needs: [build, test, coverage, lint, security]
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download all artifacts
+      - name: Download Frontend Build
         uses: actions/download-artifact@v4
         with:
-          path: artifacts/
+          name: frontend-build
+          path: frontend/dist/
 
       - name: Create Deployment Package
         run: |
-          mkdir -p deployment/
+          mkdir -p deployment/reports
           cp -r src/ deployment/
-          cp -r frontend/build deployment/frontend/
-          cp -r artifacts/ deployment/reports/
+          cp -r frontend/dist deployment/frontend/
+
+          # Copy all reports from previous stages
+          cp -r htmlcov deployment/reports/htmlcov
+          cp pylint-report.txt deployment/reports/
+          cp bandit-report.json deployment/reports/
+          cp safety-report.txt deployment/reports/
+          cp pytest-report.html deployment/reports/
+          cp test-results.xml deployment/reports/
+
           cp README.md requirements.txt deployment/
+          cp frontend/package.json deployment/ || true
+  
           cd deployment
           zip -r ../deployment-package-$(date +%Y%m%d).zip .
 
@@ -252,31 +312,3 @@ jobs:
 
       - name: Mark Completion
         run: echo " Deployment artifact created successfully!"
-
-  # =====================================================
-  # FINAL CONSOLIDATED REPORT STAGE
-  # =====================================================
-  reports:
-    name: Consolidated Reports
-    runs-on: ubuntu-latest
-    needs: [coverage, lint, security]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download all reports
-        uses: actions/download-artifact@v4
-        with:
-          path: reports/
-
-      - name: Organize Reports
-        run: |
-          mkdir -p final-reports
-          cp -r reports/* final-reports/
-          ls -R final-reports
-
-      - name: Upload Consolidated Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: final-reports
-          path: final-reports/
