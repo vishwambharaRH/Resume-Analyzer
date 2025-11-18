@@ -347,6 +347,10 @@ jobs:
 # Package everything into deployment zip with date stamp
 # Upload final deployment artifact for download
 
+# =====================================================
+  # DEPLOYMENT ARTIFACT STAGE - packages code + reports
+  # =====================================================
+
   deploy:
     name: Deployment Artifact Stage
     runs-on: ubuntu-latest
@@ -360,7 +364,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-build
-          path: frontend/dist/
+          path: frontend-build-artifact/
 
       - name: Download Coverage Report
         uses: actions/download-artifact@v4
@@ -386,10 +390,18 @@ jobs:
       - name: Create Deployment Package
         run: |
           mkdir -p deployment/reports
-          cp -r src/ deployment/
-          cp -r frontend/dist deployment/frontend/
           
-          # Copy all reports - they are now in the current directory
+          # ✅ Backend source code
+          cp -r src/ deployment/
+          
+          # ✅ Frontend source code (complete)
+          cp -r frontend/ deployment/frontend/
+          
+          # ✅ Frontend built/compiled output (for deployment)
+          mkdir -p deployment/frontend/dist
+          cp -r frontend-build-artifact/* deployment/frontend/dist/
+          
+          # ✅ All CI/CD reports
           cp -r htmlcov deployment/reports/htmlcov
           cp pylint-report.txt deployment/reports/
           cp bandit-report.json deployment/reports/
@@ -397,9 +409,10 @@ jobs:
           cp pytest-report.html deployment/reports/
           cp test-results.xml deployment/reports/
           
+          # ✅ Essential project files
           cp README.md requirements.txt deployment/
-          cp frontend/package.json deployment/ || true
           
+          # Create the zip with datestamp
           cd deployment
           zip -r ../deployment-package-$(date +%Y%m%d).zip .
 
@@ -410,4 +423,17 @@ jobs:
           path: deployment-package-*.zip
 
       - name: Mark Completion
-        run: echo " Deployment artifact created successfully!"
+        run: |
+          echo "✅ Deployment artifact created successfully!"
+          echo "📦 Package: deployment-package-$(date +%Y%m%d).zip"
+          echo ""
+          echo "📋 Artifact Contents:"
+          echo "  - Backend source code (src/)"
+          echo "  - Frontend source code (frontend/)"
+          echo "  - Frontend built output (frontend/dist/)"
+          echo "  - Coverage report (reports/htmlcov/)"
+          echo "  - Lint report (reports/pylint-report.txt)"
+          echo "  - Security reports (reports/bandit-report.json, safety-report.txt)"
+          echo "  - Test results (reports/pytest-report.html, test-results.xml)"
+          echo "  - Documentation (README.md)"
+          echo "  - Dependencies (requirements.txt)"
