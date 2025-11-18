@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dynamic Resume Analyzer Report</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .header { background-color: #f0f0f0; padding: 15px; border-radius: 5px; }
+        .score { color: #4CAF50; font-size: 1.5em; font-weight: bold; }
+        .section-header { border-bottom: 2px solid #ccc; padding-bottom: 5px; margin-top: 25px; color: #333; }
+        /* Style the anonymized placeholders for clear display */
+        .anonymized { color: darkred; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Resume Analysis Report</h1>
+        <p>
+            <p>
+            Candidate: <span class="anonymized">{{ report.name }}</span> <br>
+            Email: <span class="anonymized">{{ report.email }}</span> <br>
+            Phone: <span class="anonymized">{{ report.phone }}</span>
+            </p>
+        </p>
+    </div>
+
+    <h2 class="section-header">Overall Fit</h2>
+    <p>
+        **Quality Score:** <span class="score">{{ report.score }}/100</span> <br>
+        **Job Match:** {{ report.match_percentage }}%
+    </p>
+
+    <h2 class="section-header">Feedback and Gaps</h2>
+    <h3>Missing Core Sections:</h3>
+    <ul>
+        {% for section in report.feedback.missingSections %}
+        <li>{{ section }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Suggestions for Improvement:</h3>
+    <ul>
+        {% for suggestion in report.feedback.suggestions %}
+        <li>{{ suggestion }}</li>
+        {% endfor %}
+    </ul>
+    
+    <p style="margin-top: 50px; font-size: 0.8em; color: #888;">
+        This report ensures data privacy. The resume file is automatically deleted after analysis.
+    </p>
+</body>
+</html>

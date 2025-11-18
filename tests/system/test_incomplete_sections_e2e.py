@@ -47,7 +47,7 @@ def test_end_to_end_incomplete_section_detection():
     # Step 1: Upload resume
     upload_response = client.post(
         "/api/v1/parse",
-        files={"file": ("resume.txt", io.BytesIO(incomplete_resume), "text/plain")}
+        files={"file": ("resume.txt", io.BytesIO(incomplete_resume), "text/plain")},
     )
 
     assert upload_response.status_code == 202, "Upload should succeed"
@@ -84,7 +84,9 @@ def test_end_to_end_incomplete_section_detection():
 
     # Step 6: Verify overall score is affected
     assert "overall_score" in feedback
-    assert feedback["overall_score"] < 100, "Score should be reduced for incomplete sections"
+    assert (
+        feedback["overall_score"] < 100
+    ), "Score should be reduced for incomplete sections"
 
     # Step 7: Verify strengths are still present (NFR-009: Balanced feedback)
     assert "strengths" in feedback
@@ -157,7 +159,9 @@ def test_complete_resume_no_incomplete_flags():
     # Upload
     upload_response = client.post(
         "/api/v1/parse",
-        files={"file": ("complete_resume.txt", io.BytesIO(complete_resume), "text/plain")}
+        files={
+            "file": ("complete_resume.txt", io.BytesIO(complete_resume), "text/plain")
+        },
     )
 
     assert upload_response.status_code == 202

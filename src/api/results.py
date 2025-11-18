@@ -1,62 +1,64 @@
 """
 Results API - Returns parsed resume with validation and feedback
-Implements: GET /api/v1/results/{jobId}
+
+[FIX] This file is now refactored to use the central
+`get_analysis_data` function from data_service.py.
 """
 
-from typing import Dict
+from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, status
-from src.parser.section_detector import SectionDetector
-from src.feedback.feedback_generator import FeedbackGenerator
+
+# Import the new service function
+from src.api.data_service import get_analysis_data, UPLOAD_DIR, extract_text_from_file
 
 router = APIRouter()
-detector = SectionDetector()
-feedback_gen = FeedbackGenerator()
 
 
 @router.get("/results/{job_id}")
-async def get_results(job_id: str) -> Dict:
+async def get_results(job_id: str) -> Dict[str, Any]:
     """
-    Get resume analysis results with validation and feedback
+    Get resume analysis results with validation and feedback.
+    """
+    try:
+        # Just call the one, central function
+        report_data = get_analysis_data(job_id)
+        return report_data
 
-    Args:
-        job_id: Unique job identifier
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in get_results endpoint: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing results: {str(e)}",
+        )
 
-    Returns:
-        Complete analysis including:
-        - Section validation
-        - Incomplete section feedback
-        - Missing section alerts
-        - Actionable suggestions
 
-    Requirements: FR-003, FR-010, NFR-005
+@router.get("/results/{job_id}/raw")
+async def get_raw_text(job_id: str) -> Dict:
+    """
+    Get raw extracted text from resume (for debugging)
     """
     if not job_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Job ID not found"
         )
-
-    # Mock resume with incomplete sections (demonstrates FR-003)
-    mock_sections = {
-        "education": "BS Computer Science MIT",  # Incomplete - only 4 words
-        "skills": "Python JavaScript React FastAPI Docker AWS Git",  # Complete
-        "experience": "Software Engineer Google",  # Incomplete - no details
-        "projects": "",  # Empty - very incomplete
-    }
-
-    mock_resume_text = "\n".join(
-        [f"{section.upper()}\n{content}" for section, content in mock_sections.items()]
-    )
-
-    # Run validation
-    validation = detector.validate_resume_structure(mock_resume_text)
-
-    # Generate comprehensive feedback (FR-003)
-    feedback = feedback_gen.generate_comprehensive_feedback(mock_sections, validation)
-
-    return {
-        "status": "completed",
-        "jobId": job_id,
-        "sections": mock_sections,
-        "validation": validation,
-        "feedback": feedback,
-    }
+    uploaded_files = list(UPLOAD_DIR.glob(f"{job_id}.*"))
+    if not uploaded_files:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No file found for job ID: {job_id}",
+        )
+    file_path = uploaded_files[0]
+    try:
+        raw_text = extract_text_from_file(file_path)
+        return {
+            "jobId": job_id,
+            "filename": file_path.name,
+            "raw_text": raw_text,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error extracting text: {str(e)}",
+        )

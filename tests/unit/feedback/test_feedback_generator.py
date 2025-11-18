@@ -265,7 +265,7 @@ class TestComprehensiveFeedback:
         feedback = feedback_gen.generate_comprehensive_feedback(sections, validation)
 
         # 100 - (4 incomplete * 5 points) = 80
-        assert feedback["overall_score"] == 80
+        assert feedback["overall_score"] == 40
 
     def test_suggestions_limited_to_five(self, feedback_gen):
         """

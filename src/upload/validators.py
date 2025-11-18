@@ -5,6 +5,8 @@ Implements DRA-41: File format validation
 
 import os
 from typing import Tuple
+from fastapi import UploadFile, HTTPException, status, File
+from typing import List
 
 ALLOWED_EXTENSIONS = {".pdf", ".txt", ".docx"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB in bytes
@@ -22,7 +24,6 @@ def validate_file_type(filename: str) -> Tuple[bool, str]:
     """
     _, ext = os.path.splitext(filename)
     ext_lower = ext.lower()
-
     if ext_lower not in ALLOWED_EXTENSIONS:
         allowed = ", ".join(sorted(ALLOWED_EXTENSIONS))
         return False, f"Unsupported file type: {ext_lower}. Allowed: {allowed}"
@@ -45,7 +46,8 @@ def validate_file_size(file_size: int) -> Tuple[bool, str]:
 
     if file_size > MAX_FILE_SIZE:
         size_mb = file_size / (1024 * 1024)
-        return (False, f"File too large: {size_mb:.2f} MB. Maximum: 10 MB")
+        error_msg = f"File too large: {size_mb:.2f} MB. Maximum: 10 MB"
+        return (False, error_msg)
 
     return True, ""
 
@@ -79,3 +81,48 @@ def validate_file_content(file_content: bytes, filename: str) -> Tuple[bool, str
             return False, "File does not appear to be valid text"
 
     return True, ""
+
+
+async def validate_files(
+    files: List[UploadFile] = File(..., description="List of files to validate")
+) -> List[UploadFile]:
+    """
+    FastAPI Dependency to validate a list of uploaded files.
+    This is the main function imported by routes.py.
+    """
+    if not files:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No files were uploaded.",
+        )
+
+    validated_files = []
+    for file in files:
+        # 1. Validate Type
+        is_valid_type, msg = validate_file_type(file.filename)
+        if not is_valid_type:
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=msg
+            )
+
+        # 2. Validate Size
+        content = await file.read()
+        file_size = len(content)
+        is_valid_size, msg = validate_file_size(file_size)
+        if not is_valid_size:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=msg
+            )
+
+        # 3. Validate Content (Magic Bytes)
+        is_valid_content, msg = validate_file_content(content, file.filename)
+        if not is_valid_content:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=msg
+            )
+
+        # Reset the file pointer after reading
+        await file.seek(0)
+        validated_files.append(file)
+
+    return validated_files

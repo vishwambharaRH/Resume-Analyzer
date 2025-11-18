@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dynamic-resume-analyzer"
+version = "0.1.0"
+description = "Dynamic Resume Analyzer for parsing and analyzing resumes"
+requires-python = ">=3.10"
+
+[tool.setuptools]
+packages = ["src"]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]

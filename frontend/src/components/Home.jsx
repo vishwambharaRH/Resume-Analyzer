@@ -18,12 +18,24 @@ const Home = ({ onNavigate }) => {
           <p className="text-xl text-gray-600 mb-8">
             Get instant feedback on your resume with AI-powered insights
           </p>
-          <button
-            onClick={() => onNavigate("upload")}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-12 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-          >
-            Analyze Your Resume
-          </button>
+
+          {/* Primary CTA */}
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={() => onNavigate("upload")}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-12 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+            >
+              Analyze Your Resume
+            </button>
+
+            {/* Compare button (added) */}
+            <button
+              onClick={() => onNavigate("compare")}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-12 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+            >
+              Compare with Job Description
+            </button>
+          </div>
         </div>
 
         {/* Feature Cards */}

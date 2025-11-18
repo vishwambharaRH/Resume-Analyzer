@@ -1,10 +1,12 @@
 import pytest
 import pytest_asyncio
 from pathlib import Path
-from unittest.mock import Mock, AsyncMock
+from unittest.mock import Mock, AsyncMock, patch
 from fastapi import UploadFile
 from src.upload.service import save_file, delete_file, UPLOAD_DIR
+import src.upload.service as service  # Add this import
 import uuid
+
 
 # Fixtures should be outside the class
 @pytest_asyncio.fixture
@@ -12,8 +14,9 @@ async def mock_upload_file():
     """Create mock UploadFile object"""
     file = Mock(spec=UploadFile)
     file.filename = "test_resume.pdf"
-    file.read = AsyncMock(return_value=b"fake pdf content")  # Use AsyncMock here
+    file.read = AsyncMock(return_value=b"fake pdf content")
     return file
+
 
 @pytest.mark.asyncio
 class TestSaveFile:
@@ -130,7 +133,7 @@ class TestSaveFile:
         """
         mock_file = Mock(spec=UploadFile)
         mock_file.filename = "resume.txt"
-        mock_file.read = AsyncMock(return_value=b"plain text content")  # Use AsyncMock here
+        mock_file.read = AsyncMock(return_value=b"plain text content")
 
         result = await save_file(mock_file)
 
@@ -142,16 +145,25 @@ class TestSaveFile:
 
         Expected: UPLOAD_DIR exists after save_file
         """
-        original_dir = save_file.__globals__["UPLOAD_DIR"]
-        save_file.__globals__["UPLOAD_DIR"] = tmp_path
+        # Save original directory
+        original_dir = service.UPLOAD_DIR
 
-        await save_file(mock_upload_file)
+        try:
+            # Set temporary test directory
+            test_upload_dir = tmp_path / "uploads"
+            service.UPLOAD_DIR = test_upload_dir
 
-        assert tmp_path.exists()
-        assert tmp_path.is_dir()
+            await save_file(mock_upload_file)
 
-        # Restore original directory
-        save_file.__globals__["UPLOAD_DIR"] = original_dir
+            assert test_upload_dir.exists()
+            assert test_upload_dir.is_dir()
+        finally:
+            # Restore original directory
+            service.UPLOAD_DIR = original_dir
+            # Clean up test file if created
+            if test_upload_dir.exists():
+                for file in test_upload_dir.iterdir():
+                    file.unlink()
 
     async def test_save_file_actually_writes_content(self, mock_upload_file):
         """
