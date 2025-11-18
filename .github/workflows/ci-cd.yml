@@ -166,6 +166,13 @@ jobs:
       - name: Generate Pytest Reports (JUnit + HTML)
         run: |
           pytest --junitxml=test-results.xml --html=pytest-report.html --self-contained-html
+      - name: Upload Pytest Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-reports
+          path: |
+            test-results.xml
+            pytest-report.html
 
   # =====================================================
   # COVERAGE STAGE - ensures minimum 75% coverage
@@ -265,6 +272,12 @@ jobs:
         working-directory: ./frontend
         run: npm run lint
 
+      - name: Upload Pylint Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pylint-report
+          path: pylint-report.txt
+
 
   # =========================================================
   # SECURITY SCAN STAGE - Bandit & Safety vulnerability checks
@@ -315,6 +328,14 @@ jobs:
 
       - name: Run Safety (Dependency Vulnerability Check)
         run: safety check --full-report > safety-report.txt
+      
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.txt
 
   # =====================================================
   # DEPLOYMENT ARTIFACT STAGE - packages code + reports
@@ -347,23 +368,38 @@ jobs:
           name: coverage-html
           path: htmlcov/
 
+      - name: Download Pytest Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: pytest-reports
+      
+      - name: Download Security Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: security-reports
+          
+      - name: Download Pylint Report
+        uses: actions/download-artifact@v4
+        with:
+          name: pylint-report
+
       - name: Create Deployment Package
         run: |
           mkdir -p deployment/reports
           cp -r src/ deployment/
           cp -r frontend/dist deployment/frontend/
-
-          # Copy all reports from previous stages
+          
+          # Copy all reports - they are now in the current directory
           cp -r htmlcov deployment/reports/htmlcov
           cp pylint-report.txt deployment/reports/
           cp bandit-report.json deployment/reports/
           cp safety-report.txt deployment/reports/
           cp pytest-report.html deployment/reports/
           cp test-results.xml deployment/reports/
-
+          
           cp README.md requirements.txt deployment/
           cp frontend/package.json deployment/ || true
-  
+          
           cd deployment
           zip -r ../deployment-package-$(date +%Y%m%d).zip .
 
