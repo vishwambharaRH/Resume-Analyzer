@@ -1,0 +1,9 @@
+{
+  "name": "dynamic-resume-analyzer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dynamic Resume Analyzer - Python backend with minimal Node setup for CI",
+  "scripts": {
+    "test": "echo \"Node.js tests not configured - using pytest instead\" && exit 0"
+  }
+}

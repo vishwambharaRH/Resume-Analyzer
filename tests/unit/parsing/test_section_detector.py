@@ -85,6 +85,29 @@ class TestSectionDetection:
         Harvard University
         """
 
+    @pytest.fixture
+    def resume_with_duplicates(self):
+        """
+        A resume with duplicate and synonymous sections
+        to test the FR-005 merge logic.
+        """
+        return """
+        SUMMARY
+        A senior developer.
+
+        SKILLS
+        Python, Java, C++
+
+        EXPERIENCE
+        My Job 1 at Company A
+        
+        TECHNICAL SKILLS
+        SQL, Docker, Git
+        
+        Work Experience
+        My Job 2 at Company B
+        """
+
     # TC-MISS-001: Test detection when all sections present
     def test_detect_all_sections_present(self, detector, complete_resume):
         """
@@ -306,3 +329,60 @@ class TestSectionDetection:
 
         # Missing projects = 75% complete
         assert validation["completeness_score"] == 75.0
+
+    def test_fr005_split_and_merge_sections(self, detector, resume_with_duplicates):
+        """
+        (Subtask 2) Unit test for the core merge logic.
+        Tests _split_and_merge_sections directly.
+        """
+        merged = detector._split_and_merge_sections(resume_with_duplicates)
+
+        # AC: No duplicate section titles
+        # Should merge down to 3 sections: summary, skills, experience
+        assert "summary" in merged
+        assert "skills" in merged
+        assert "experience" in merged
+        assert len(merged) == 3
+
+        # AC: Merge their content into one section
+        # AC: Content must not be lost
+        skills_content = merged["skills"]
+        exp_content = merged["experience"]
+
+        assert "Python, Java, C++" in skills_content
+        assert "SQL, Docker, Git" in skills_content
+        assert skills_content.count("\n\n") == 1  # Check for clean merge
+
+        assert "My Job 1 at Company A" in exp_content
+        assert "My Job 2 at Company B" in exp_content
+        assert exp_content.count("\n\n") == 1
+
+    def test_fr005_validate_structure_with_merge(
+        self, detector, resume_with_duplicates
+    ):
+        """
+        (Subtask 3) Tests that the public validate_resume_structure
+        method correctly uses the merge logic.
+        """
+        report = detector.validate_resume_structure(resume_with_duplicates)
+
+        # Check that the main report is based on *merged* data
+        assert "skills" in report["present_sections"]
+        assert "experience" in report["present_sections"]
+        assert "summary" in report["present_sections"]
+
+        # Check that missing sections are correctly identified
+        # (Education and Projects are missing)
+        assert "education" in report["missing_sections"]
+        assert "projects" in report["missing_sections"]
+        assert len(report["missing_sections"]) == 2
+
+        # Check completeness score (2/4 required are present)
+        assert report["completeness_score"] == 50.0
+
+        # AC: Merged sections in report
+        # Check that the new 'merged_sections' dict is in the report
+        assert "merged_sections" in report
+        assert "skills" in report["merged_sections"]
+        assert "Python, Java, C++" in report["merged_sections"]["skills"]
+        assert "SQL, Docker, Git" in report["merged_sections"]["skills"]

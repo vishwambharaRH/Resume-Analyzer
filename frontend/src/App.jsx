@@ -2,6 +2,7 @@ import { useState } from "react";
 import Home from "./components/Home";
 import UploadForm from "./components/UploadForm";
 import Results from "./components/Results";
+import CompareForm from './components/CompareForm';
 
 function App() {
   const [currentView, setCurrentView] = useState("home");
@@ -23,6 +24,9 @@ function App() {
       )}
       {currentView === "results" && (
         <Results onNavigate={setCurrentView} jobData={jobData} />
+      )}
+      {currentView === "compare" && (
+        <CompareForm onNavigate={(view) => setCurrentView(view)} />
       )}
     </div>
   );

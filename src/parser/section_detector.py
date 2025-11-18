@@ -1,17 +1,13 @@
 """
 Section Detection Module - FR-002 Implementation
 Implements FR-010: Detect missing sections in resume
-
-Requirements Addressed:
-- SRS FR-010: Detect missing sections
-- SAD: Parsing Engine component
-- STP: RPRS-F-007
-- RTM: TC-MISS-001 to TC-MISS-005
+Implements FR-005: Detect and merge duplicate sections
 """
 
 import re
-from typing import Dict, List
+from typing import Dict, List, Any
 from enum import Enum
+from src.utils.perf import timeit
 
 
 class SectionType(Enum):
@@ -22,9 +18,11 @@ class SectionType(Enum):
     EXPERIENCE = "experience"
     PROJECTS = "projects"
     CONTACT = "contact"
+    SUMMARY = "summary"  # Added for new merge logic
 
 
-# Section header patterns (regex) - cached in Redis per SW-004
+# === LOGIC FOR FR-010 (Original Keyword Detection) ===
+# This is your original, proven logic for keyword scanning.
 SECTION_PATTERNS = {
     SectionType.EDUCATION: [
         r"\b(education|academic|qualification|degree|university|college)\b",
@@ -47,21 +45,49 @@ SECTION_PATTERNS = {
         r"[\w\.-]+@[\w\.-]+\.\w+",  # Email pattern
         r"\+?\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}",  # Phone
     ],
+    SectionType.SUMMARY: [  # Added for consistency, used by FR-005
+        r"\b(summary|objective|profile|about me|professional summary)\b",
+    ],
+}
+
+
+# === LOGIC FOR FR-005 (New Merge Logic) ===
+# These patterns are for *merging* and MUST match headers,
+# not keywords.
+MERGE_HEADER_SYNONYMS = {
+    # Canonical Name -> List of synonyms
+    "summary": ["summary", "objective", "profile", "professional summary"],
+    "skills": [
+        "skills",
+        "technical skills",
+        "technologies",
+        "technical skills & competencies",
+    ],
+    "experience": [
+        "experience",
+        "employment",
+        "work experience",
+        "professional experience",
+    ],
+    "projects": ["projects", "portfolio", "personal projects", "academic projects"],
+    "education": ["education", "academic background"],
+}
+
+# Reverse map for quick lookup: "technical skills" -> "skills"
+CANONICAL_HEADER_MAP = {
+    synonym.lower(): canonical
+    for canonical, synonyms in MERGE_HEADER_SYNONYMS.items()
+    for synonym in synonyms
 }
 
 
 class SectionDetector:
     """
     Detects and validates resume sections
-
-    Methods:
-        detect_sections: Identify present sections in resume text
-        find_missing_sections: List missing required sections
-        is_section_complete: Check if section has meaningful content
-        validate_resume_structure: Comprehensive validation
     """
 
     def __init__(self):
+        # This is the original set of *required* sections for FR-010
         self.required_sections = {
             SectionType.EDUCATION,
             SectionType.SKILLS,
@@ -69,19 +95,13 @@ class SectionDetector:
             SectionType.PROJECTS,
         }
 
+    # --- ORIGINAL METHODS (FR-010) - DO NOT CHANGE ---
+    # These methods use SECTION_PATTERNS (keyword search)
+    # and are required for your original tests to pass.
+
     def detect_sections(self, resume_text: str) -> Dict[str, bool]:
         """
-        Detect which sections are present in resume
-
-        Args:
-            resume_text: Full resume text (extracted by parsing engine)
-
-        Returns:
-            Dictionary mapping section names to presence boolean
-            Example: {"education": True, "skills": False, ...}
-
-        Test Cases: TC-MISS-001, TC-MISS-002
-        Requirements: SRS FR-010
+        Detect which sections are present in resume (Keyword-based)
         """
         if not resume_text or len(resume_text.strip()) == 0:
             return {section.value: False for section in SectionType}
@@ -106,18 +126,7 @@ class SectionDetector:
         self, resume_text: str, required_only: bool = True
     ) -> List[str]:
         """
-        Find missing sections in resume
-
-        Args:
-            resume_text: Full resume text
-            required_only: If True, only check required sections
-
-        Returns:
-            List of missing section names
-            Example: ["skills", "projects"]
-
-        Test Cases: TC-MISS-003, TC-MISS-004
-        Requirements: FR-010 (SRS), SAD Matching Engine
+        Find missing sections in resume (Keyword-based)
         """
         detected = self.detect_sections(resume_text)
 
@@ -133,69 +142,106 @@ class SectionDetector:
 
         return sorted(missing)
 
+    @timeit("is_section_complete")
     def is_section_complete(
         self, section_text: str, section_type: SectionType, min_words: int = 10
     ) -> bool:
         """
         Check if section has meaningful content (not just header)
-
-        Args:
-            section_text: Text content of the section
-            section_type: Type of section being checked
-            min_words: Minimum word count for completeness
-
-        Returns:
-            True if section is complete, False if incomplete
-
-        Test Cases: TC-MISS-005
-        Requirements: FR-007 (Flag incomplete sections)
         """
         if not section_text:
             return False
 
-        # Remove section header from word count
         for pattern in SECTION_PATTERNS[section_type]:
             section_text = re.sub(pattern, "", section_text, flags=re.IGNORECASE)
 
-        # Count meaningful words (exclude common filler)
         words = [
             word
             for word in section_text.split()
-            if len(word) > 2 and word.lower() not in {"the", "and", "for", "with"}
+            if (len(word) > 2 and word.lower() not in {"the", "and", "for", "with"})
         ]
 
         return len(words) >= min_words
 
+    # --- NEW METHOD (FR-005) ---
+
+    def _split_and_merge_sections(self, resume_text: str) -> Dict[str, str]:
+        """
+        (Subtask 1: Duplicate detection & merge logic - FR-005)
+
+        Splits text by headers defined in CANONICAL_HEADER_MAP
+        and merges their content. (Line-parser-based)
+        """
+        merged_sections = {}
+        current_canonical: str | None = None
+        current_content: List[str] = []
+
+        def save_previous_section():
+            """Helper to save the content for the current_canonical."""
+            if not current_canonical:
+                return
+
+            content_str = "\n".join(current_content).strip()
+            if content_str:  # Only save if there is content
+                if current_canonical not in merged_sections:
+                    merged_sections[current_canonical] = content_str
+                else:
+                    # This is a duplicate, merge it
+                    merged_sections[current_canonical] += "\n\n" + content_str
+
+        for line in resume_text.split("\n"):
+            line_clean = line.strip().lower()
+
+            # Check if this line IS a header in our merge list
+            if line_clean in CANONICAL_HEADER_MAP:
+                # 1. Save the previous section
+                save_previous_section()
+
+                # 2. Start new section
+                current_canonical = CANONICAL_HEADER_MAP[line_clean]
+                current_content = []
+
+            elif current_canonical:
+                # 3. This is content, append it
+                current_content.append(line)
+
+        # Save the very last section
+        save_previous_section()
+
+        return merged_sections
+
+    # --- UPDATED ORCHESTRATOR METHOD ---
+
     def validate_resume_structure(self, resume_text: str) -> Dict:
         """
-        Comprehensive resume structure validation
-
-        Returns:
-            {
-                "has_all_required": bool,
-                "missing_sections": List[str],
-                "incomplete_sections": List[str],
-                "present_sections": List[str],
-                "completeness_score": float  # 0-100
-            }
-
-        Requirements: FR-010, NFR-005 (Meaningful feedback)
-        RTM: Component-level traceability for Matching Engine
+        Comprehensive resume structure validation.
+        (Runs FR-010 detection AND FR-005 merging)
         """
+
+        # --- FR-010 Logic (Original) ---
+        # This logic is for keyword detection and completeness score.
+        # It uses the original, robust keyword-based methods.
         detected = self.detect_sections(resume_text)
         missing = self.find_missing_sections(resume_text, required_only=True)
-
         present = [section for section, found in detected.items() if found]
-
-        # Calculate completeness score
         total_required = len(self.required_sections)
         present_required = total_required - len(missing)
         completeness_score = (present_required / total_required) * 100
 
+        # --- FR-005 Logic (New) ---
+        # This logic is for splitting and merging content.
+        # It uses the new line-parser-based method.
+        merged_sections_content = self._split_and_merge_sections(resume_text)
+
+        # --- Return data from BOTH features ---
+        # NEW, FIXED CODE
         return {
+            # From FR-010 (original logic)
             "has_all_required": len(missing) == 0,
             "missing_sections": missing,
             "incomplete_sections": [],  # Populated by parsing engine
             "present_sections": present,
             "completeness_score": round(completeness_score, 2),
+            # From FR-005 (new logic)
+            "merged_sections": merged_sections_content,
         }
