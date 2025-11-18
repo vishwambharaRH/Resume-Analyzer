@@ -1,0 +1,144 @@
+# =======================================
+# PYTHON ENVIRONMENTS & CACHE FILES
+# =======================================
+.venv/
+venv/
+ENV/
+env/
+*.py[cod]
+__pycache__/
+*.so
+*.pyo
+*.pyd
+*.pyc
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# =======================================
+# ENVIRONMENT VARIABLES & SECRETS
+# =======================================
+.env
+.env.*
+!.env.example
+*.secret
+*.pem
+*.key
+*.crt
+
+# =======================================
+# TESTING & COVERAGE
+# =======================================
+.pytest_cache/
+.coverage
+.coverage.*
+.cache/
+htmlcov/
+.tox/
+nosetests.xml
+test-results.xml
+pytest-report.html
+junit/
+reports/
+
+# =======================================
+# LOGS & TEMP FILES
+# =======================================
+*.log
+logs/
+*.tmp
+tmp/
+temp/
+*.bak
+*.swp
+*.swo
+*.orig
+*.pid
+
+# =======================================
+# UPLOADS & GENERATED CONTENT
+# =======================================
+uploads/
+media/
+output/
+outputs/
+artifacts/
+deployment/
+__snapshots__/
+
+# =======================================
+# IDEs / EDITORS
+# =======================================
+.vscode/
+.idea/
+*.iml
+*.sublime-workspace
+*.sublime-project
+
+# =======================================
+# OS FILES
+# =======================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+desktop.ini
+
+# =======================================
+# NODE / FRONTEND BUILD (React/Next.js)
+# =======================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# =======================================
+# CI/CD OUTPUTS
+# =======================================
+artifacts/
+coverage/
+lint-report.txt
+pytest-report.txt
+bandit-report.json
+safety-report.txt
+
+# =======================================
+# JUPYTER NOTEBOOKS & DATA FILES
+# =======================================
+.ipynb_checkpoints/
+*.ipynb
+notebooks/.ipynb_checkpoints/
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.parquet
+*.db
+*.sqlite3
+
+# =======================================
+# BACKUP FILES
+# =======================================
+*.bak
+*.old
+*.orig
+*.rej
+*~
+
+# =======================================
+# MISCELLANEOUS
+# =======================================
+__MACOSX/
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar

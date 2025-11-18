@@ -1,0 +1,7 @@
+{
+  "Python": ["python", "programming in python", "py"],
+  "React": ["react", "react.js", "reactjs"],
+  "AWS": ["aws", "amazon web services", "s3", "ec2"],
+  "Docker": ["docker", "docker containers"],
+  "JavaScript": ["javascript", "js"]
+}
