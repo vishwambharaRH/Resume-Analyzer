@@ -296,7 +296,13 @@ jobs:
         run: pip install bandit safety
 
       - name: Run Bandit (Static Security Scan)
-        run: bandit -r src -f json -o bandit-report.json --severity-level high --confidence-level high # ✅ ADDED --skip B101
+        run: bandit -r src -f json -o bandit-report.json --severity-level medium --confidence-level medium
+
+      - name: Ensure Bandit Report Exists
+        run: |
+          if [ ! -f bandit-report.json ]; then
+            echo '{}' > bandit-report.json
+          fi
 
       - name: Check for Critical Vulnerabilities
         run: |
