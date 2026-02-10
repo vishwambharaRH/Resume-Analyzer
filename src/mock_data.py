@@ -26,3 +26,5 @@ MOCK_ANALYSIS_REPORT = {
         ],
     },
 }
+
+MOCK_FILE_METADATA = {}

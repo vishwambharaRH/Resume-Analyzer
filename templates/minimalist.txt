@@ -1,0 +1,31 @@
+# FILENAME: minimalist.txt
+
+[Your Name]
+[Your Phone Number] | [Your Email] | [LinkedIn URL] | [City, State]
+
+--- Summary ---
+Results-driven [Your Role] with X years of experience specializing in [Key Skill 1] and [Key Skill 2]. Proven ability to [Action Verb] to achieve [Specific quantified result]. Seeking to leverage technical expertise in a fast-paced environment.
+
+--- Technical Skills ---
+Languages: Python, JavaScript, SQL
+Frameworks: React, Node.js, Flask
+Tools: Docker, AWS, Git
+
+--- Professional Experience ---
+[Company Name] | [City, State]
+[Job Title] | [Start Date] – [End Date]
+
+* Led a team of X engineers to redesign the [System Name], increasing performance by 30%.
+* Developed and maintained RESTful APIs using Python, handling over 1 million daily requests.
+* Implemented CI/CD pipelines, reducing deployment time from 1 hour to 15 minutes.
+
+[Company Name] | [City, State]
+[Job Title] | [Start Date] – [End Date]
+
+* Automated reporting processes using SQL scripts, saving the team 10 hours per week.
+* Collaborated with product managers to define feature specifications and timelines.
+
+--- Education ---
+[University Name] | [City, State]
+[Degree Name] in [Major] | [Graduation Year]
+GPA: [X.X/4.0] (Optional)
