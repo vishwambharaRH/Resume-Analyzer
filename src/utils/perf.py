@@ -66,3 +66,6 @@ def timeit(operation_name: str) -> Callable:
         return sync_wrapper  # type: ignore
 
     return decorator
+
+def time_execution(operation_name: str):
+    return timeit(operation_name)

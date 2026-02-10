@@ -1,0 +1,28 @@
+# FILENAME: functional.txt
+
+[Your Name]
+[Your Phone Number] | [Your Email] | [City, State]
+
+--- Profile/Objective ---
+Highly motivated recent graduate seeking an entry-level position in [Target Industry]. Possesses strong organizational skills and proven competency in [Skill Group 1] and [Skill Group 2] through academic projects and internships.
+
+--- Core Competencies ---
+COMMUNICATION & TRAINING
+* Developed and delivered training materials to new hires on [Specific Topic].
+* Successfully managed client correspondence, resulting in a 95% satisfaction rate.
+
+DATA ANALYSIS
+* Proficient in Excel, Tableau, and R for cleaning, analyzing, and visualizing large datasets.
+* Completed a capstone project analyzing [Specific Data Set], presenting actionable insights to stakeholders.
+
+PROJECT MANAGEMENT
+* Coordinated weekly team meetings, managing tasks and deadlines for a 6-person team.
+* Utilized agile methodologies to complete [Project Name] under budget and on time.
+
+--- Relevant Experience ---
+[Job Title] (Part-time or Internship) | [Company Name] | [Start Date] – [End Date]
+* (Keep bullet points brief, focusing on transferable skills used.)
+
+--- Education ---
+[University Name] | [City, State]
+[Degree Name] in [Major] | [Graduation Year]

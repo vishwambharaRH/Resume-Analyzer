@@ -191,3 +191,22 @@ async def process_batch_upload(files: List[UploadFile]) -> List[dict]:
         )
 
     return job_results
+
+import logging
+logger = logging.getLogger(__name__)
+
+def delete_and_log(file_path: str) -> bool:
+    """
+    Delete a file and log the action.
+    Required by integration tests.
+    """
+    try:
+        deleted = delete_file(file_path)
+        if deleted:
+            logger.info(f"Deleted file: {file_path}")
+        else:
+            logger.warning(f"File not found for deletion: {file_path}")
+        return deleted
+    except Exception as e:
+        logger.error(f"Error deleting file {file_path}: {e}")
+        raise

@@ -391,17 +391,17 @@ jobs:
         run: |
           mkdir -p deployment/reports
           
-          # ✅ Backend source code
+          #  Backend source code
           cp -r src/ deployment/
           
-          # ✅ Frontend source code (complete)
+          #  Frontend source code (complete)
           cp -r frontend/ deployment/frontend/
           
-          # ✅ Frontend built/compiled output (for deployment)
+          #  Frontend built/compiled output (for deployment)
           mkdir -p deployment/frontend/dist
           cp -r frontend-build-artifact/* deployment/frontend/dist/
           
-          # ✅ All CI/CD reports
+          #  All CI/CD reports
           cp -r htmlcov deployment/reports/htmlcov
           cp pylint-report.txt deployment/reports/
           cp bandit-report.json deployment/reports/
@@ -409,7 +409,7 @@ jobs:
           cp pytest-report.html deployment/reports/
           cp test-results.xml deployment/reports/
           
-          # ✅ Essential project files
+          #  Essential project files
           cp README.md requirements.txt deployment/
           
           # Create the zip with datestamp
@@ -424,10 +424,10 @@ jobs:
 
       - name: Mark Completion
         run: |
-          echo "✅ Deployment artifact created successfully!"
-          echo "📦 Package: deployment-package-$(date +%Y%m%d).zip"
+          echo " Deployment artifact created successfully!"
+          echo " Package: deployment-package-$(date +%Y%m%d).zip"
           echo ""
-          echo "📋 Artifact Contents:"
+          echo " Artifact Contents:"
           echo "  - Backend source code (src/)"
           echo "  - Frontend source code (frontend/)"
           echo "  - Frontend built output (frontend/dist/)"

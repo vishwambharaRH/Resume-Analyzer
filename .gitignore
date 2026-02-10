@@ -5,6 +5,7 @@
 venv/
 ENV/
 env/
+.sevenv/
 *.py[cod]
 __pycache__/
 *.so
@@ -81,6 +82,7 @@ __snapshots__/
 # OS FILES
 # =======================================
 .DS_Store
+*/.DS_Store
 Thumbs.db
 ehthumbs.db
 Icon?
