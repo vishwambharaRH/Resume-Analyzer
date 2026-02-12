@@ -7,7 +7,7 @@
 **Campus:** RR  
 **Branch:** CSE  
 **Section:** L  
-**Team:** CommitAndChill
+**Team Name:** CommitAndChill
 
 ## 📋 Project Description
 
