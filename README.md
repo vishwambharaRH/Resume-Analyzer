@@ -3,7 +3,7 @@
 **Project ID:** P47  
 **Course:** UE23CS341A  
 **Academic Year:** 2025  
-**Semester:** 5th Sem  
+**Semester:** 5th Semester  
 **Campus:** RR  
 **Branch:** CSE  
 **Section:** L  
@@ -13,7 +13,7 @@
 
 A service that parses uploaded resumes (text), identifies sections (e.g., skills, education), and flags missing common elements. The project uses regex-based parsing, section-mapping logic, and feedback generation.
 
-This repository contains the source code and documentation for the Dynamic Resume Analyzer project, developed as part of the UE23CS341A course at PES University.
+This repository contains the source code and documentation for the Dynamic Resume Analyzer project, developed as part of the UE23CS341A course at PES University, Bengaluru.
 
 ## 🧑‍💻 Development Team (CommitAndChill)
 
